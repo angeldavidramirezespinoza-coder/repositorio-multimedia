@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Repositorio Multimedia</title>
+  <style>
+    :root {
+      --bg-primary: #0a0e17;
+      --bg-card: #131b2e;
+      --accent: #00f2fe;
+      --accent-purple: #7928ca;
+      --danger: #ef4444;
+      --text-main: #f1f5f9;
+      --text-muted: #94a3b8;
+      --border: rgba(255, 255, 255, 0.1);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-primary);
+      color: var(--text-main);
+      padding-bottom: 140px;
+    }
+
+    header {
+      padding: 2rem;
+      background: linear-gradient(135deg, rgba(121,40,202,0.2), rgba(0,242,254,0.2));
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    h1 {
+      font-size: 1.8rem;
+      background: linear-gradient(45deg, var(--accent), #4facfe);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .upload-btn-wrapper {
+      position: relative;
+      overflow: hidden;
+      display: inline-block;
+    }
+
+    .btn-upload {
+      border: 2px solid var(--accent);
+      color: #fff;
+      background: rgba(0, 242, 254, 0.1);
+      padding: 8px 20px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    .btn-upload:hover {
+      background: var(--accent);
+      color: #000;
+    }
+
+    .upload-btn-wrapper input[type=file] {
+      font-size: 100px;
+      position: absolute;
+      left: 0;
+      top: 0;
+      opacity: 0;
+      cursor: pointer;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+    }
+
+    .filters {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 2rem;
+    }
+
+    .filter-btn {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      padding: 8px 16px;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .filter-btn.active, .filter-btn:hover {
+      color: var(--text-main);
+      border-color: var(--accent);
+      background: rgba(0, 242, 254, 0.1);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1rem;
+      transition: transform 0.2s, border-color 0.2s;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .card:hover {
+      transform: translateY(-4px);
+      border-color: var(--accent);
+    }
+
+    .card-content {
+      cursor: pointer;
+    }
+
+    .card-icon {
+      font-size: 3rem;
+      text-align: center;
+      margin-bottom: 1rem;
+    }
+
+    .card-title {
+      font-size: 0.95rem;
+      word-break: break-all;
+      color: var(--text-main);
+      margin-bottom: 0.5rem;
+    }
+
+    .card-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 1rem;
+    }
+
+    .card-badge {
+      display: inline-block;
+      font-size: 0.75rem;
+      padding: 2px 8px;
+      border-radius: 4px;
+      text-transform: uppercase;
+      font-weight: bold;
+    }
+
+    .badge-audio { background: rgba(121, 40, 202, 0.3); color: #c084fc; }
+    .badge-video { background: rgba(0, 242, 254, 0.3); color: #38bdf8; }
+
+    .btn-delete {
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid var(--danger);
+      color: #fca5a5;
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .btn-delete:hover {
+      background: var(--danger);
+      color: #fff;
+    }
+
+    /* Player flotante */
+    .sticky-player {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(19, 27, 46, 0.95);
+      backdrop-filter: blur(10px);
+      border-top: 1px solid var(--border);
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5rem;
+      z-index: 1000;
+    }
+
+    #now-playing-title {
+      font-size: 0.9rem;
+      color: var(--accent);
+      margin-bottom: 4px;
+      text-align: center;
+    }
+
+    audio, video {
+      width: 100%;
+      max-width: 700px;
+      border-radius: 8px;
+    }
+
+    video {
+      max-height: 220px;
+      background: #000;
+      display: none;
+    }
+
+    .empty-msg {
+      text-align: center;
+      color: var(--text-muted);
+      grid-column: 1 / -1;
+      padding: 3rem 0;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>Repositorio Multimedia</h1>
+    <div class="upload-btn-wrapper">
+      <button class="btn-upload">📁 Subir Archivo</button>
+      <input type="file" id="file-input" accept="audio/*,video/*" />
+    </div>
+  </header>
+
+  <div class="container">
+    <div class="filters">
+      <button class="filter-btn active" onclick="filterMedia('all', event)">Todos</button>
+      <button class="filter-btn" onclick="filterMedia('audio', event)">🎵 Música</button>
+      <button class="filter-btn" onclick="filterMedia('video', event)">🎬 Videos</button>
+    </div>
+
+    <div class="grid" id="media-grid">
+      <p class="empty-msg">Cargando archivos...</p>
+    </div>
+  </div>
+
+  <!-- Reproductor Flotante -->
+  <div class="sticky-player" id="player-container">
+    <div id="now-playing-title">Selecciona un archivo para reproducir</div>
+    <video id="video-player" controls></video>
+    <audio id="audio-player" controls></audio>
+  </div>
+
+  <script>
+    let allMediaFiles = [];
+    let currentFilter = 'all';
+
+    const audioPlayer = document.getElementById('audio-player');
+    const videoPlayer = document.getElementById('video-player');
+    const nowPlayingTitle = document.getElementById('now-playing-title');
+
+    async function fetchFiles() {
+      try {
+        const response = await fetch('/api/files');
+        allMediaFiles = await response.json();
+        renderGrid();
+      } catch (err) {
+        console.error('Error al cargar archivos:', err);
+      }
+    }
+
+    document.getElementById('file-input').addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const formData = new FormData();
+      formData.append('file', file);
+      nowPlayingTitle.innerText = `Subiendo "${file.name}"...`;
+
+      try {
+        const res = await fetch('/api/upload', { method: 'POST', body: formData });
+        const data = await res.json();
+        if (res.ok) {
+          nowPlayingTitle.innerText = `Subida completada: ${file.name}`;
+          fetchFiles();
+        } else {
+          alert('Error: ' + data.error);
+        }
+      } catch (err) {
+        alert('Ocurrió un error al subir el archivo');
+      }
+    });
+
+    function renderGrid() {
+      const grid = document.getElementById('media-grid');
+      grid.innerHTML = '';
+
+      const filtered = allMediaFiles.filter(item => 
+        currentFilter === 'all' || item.type === currentFilter
+      );
+
+      if (filtered.length === 0) {
+        grid.innerHTML = '<p class="empty-msg">No hay archivos disponibles en esta categoría.</p>';
+        return;
+      }
+
+      filtered.forEach(item => {
+        const card = document.createElement('div');
+        card.className = 'card';
+
+        const isAudio = item.type === 'audio';
+        card.innerHTML = `
+          <div class="card-content" onclick="playMedia('${item.url}', '${item.title}', '${item.type}')">
+            <div class="card-icon">${isAudio ? '🎵' : '🎬'}</div>
+            <div class="card-title">${item.title}</div>
+          </div>
+          <div class="card-footer">
+            <span class="card-badge ${isAudio ? 'badge-audio' : 'badge-video'}">${item.type}</span>
+            <button class="btn-delete" onclick="deleteFile('${item.title}', event)">🗑️ Eliminar</button>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    function filterMedia(type, event) {
+      currentFilter = type;
+      document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+      if (event && event.target) {
+        event.target.classList.add('active');
+      }
+      renderGrid();
+    }
+
+    function playMedia(url, title, type) {
+      nowPlayingTitle.innerText = `Reproduciendo: ${title}`;
+
+      if (type === 'audio') {
+        videoPlayer.pause();
+        videoPlayer.removeAttribute('src');
+        videoPlayer.load();
+        videoPlayer.style.display = 'none';
+
+        audioPlayer.style.display = 'block';
+        audioPlayer.src = url;
+        audioPlayer.play();
+      } else if (type === 'video') {
+        audioPlayer.pause();
+        audioPlayer.removeAttribute('src');
+        audioPlayer.load();
+        audioPlayer.style.display = 'none';
+
+        videoPlayer.style.display = 'block';
+        videoPlayer.src = url;
+        videoPlayer.play();
+      }
+    }
+
+    async function deleteFile(filename, event) {
+      // Evitar que el clic en el botón active la reproducción de la tarjeta
+      if (event) {
+        event.stopPropagation();
+      }
+
+      if (!confirm(`¿Estás seguro de que deseas eliminar "${filename}"?`)) return;
+
+      // 1. Liberar el reproductor si el archivo actual está reproduciéndose
+      if (audioPlayer.src.includes(filename) || videoPlayer.src.includes(filename) ||
+          audioPlayer.src.includes(encodeURIComponent(filename)) || videoPlayer.src.includes(encodeURIComponent(filename))) {
+        audioPlayer.pause();
+        videoPlayer.pause();
+        audioPlayer.removeAttribute('src');
+        videoPlayer.removeAttribute('src');
+        audioPlayer.load();
+        videoPlayer.load();
+        audioPlayer.style.display = 'none';
+        videoPlayer.style.display = 'none';
+        nowPlayingTitle.innerText = 'Selecciona un archivo para reproducir';
+      }
+
+      // 2. Enviar la petición de borrado al servidor
+      try {
+        const res = await fetch(`/api/delete/${encodeURIComponent(filename)}`, {
+          method: 'DELETE'
+        });
+        const data = await res.json();
+
+        if (res.ok) {
+          fetchFiles(); // Recargar la lista correctamente
+        } else {
+          alert('Error al eliminar: ' + (data.error || 'No se pudo eliminar el archivo'));
+        }
+      } catch (err) {
+        console.error(err);
+        alert('Ocurrió un error en la red al intentar eliminar el archivo');
+      }
+    }
+
+    // Inicializar cargando la lista de archivos
+    fetchFiles();
+  </script>
+</body>
+</html>
